@@ -10,7 +10,7 @@ class BaseTestCase(TestCase):
         return app
 
     def setUp(self):
-        db.create_all(bind=None)
+        db.create_all()
         db.session.commit()
 
         with open(os.path.join(dir_path, 'data', 'prod-license.txt')) as data:
@@ -25,4 +25,4 @@ class BaseTestCase(TestCase):
 
     def tearDown(self):
         db.session.remove()
-        db.drop_all(bind=None)
+        db.drop_all()

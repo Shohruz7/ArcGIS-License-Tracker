@@ -1,56 +1,61 @@
 import unittest
-from flask_script import Manager, Shell, Server
+import click
+from flask import Flask
 from app import app, db
 from app.fake_populate import populate
 
-manager = Manager(app)
 
-def make_shell_context():
-    return dict(app=app)
+@click.group()
+def cli():
+    """Management commands for the Flask application."""
+    pass
 
-@manager.command
+
+@cli.command()
 def recreate_db():
-    """
-    Create the SQL database.
-    """
-    db.drop_all()
-    db.create_all()
-    db.session.commit()
-    print("recreated the database")
+    """Create the SQL database."""
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
+        db.session.commit()
+        print("recreated the database")
 
-@manager.command
+
+@cli.command()
 def fake_populate():
-    """
-    Load dummy data into db
-    """
-    recreate_db()
-    populate()
-    print("populated database with dummy data")
+    """Load dummy data into db"""
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
+        db.session.commit()
+        populate()
+        print("populated database with dummy data")
 
-@manager.command
+
+@cli.command()
 def test():
-    """
-    run unit tests
-    :return: result, successful or not
-    """
+    """Run unit tests."""
     tests = unittest.TestLoader().discover('tests', pattern='test*.py')
     result = unittest.TextTestRunner(verbosity=2).run(tests)
     if result.wasSuccessful():
         return 0
     return 1
 
-@manager.command
+
+@cli.command()
 def read_once():
-    """
-    a one-time read from the license server.
-    """
+    """A one-time read from the license server."""
     from app.read_licenses import read
-    read()
-    print('Read completed.')
+    with app.app_context():
+        read()
+        print('Read completed.')
 
 
-manager.add_command('runserver', Server(threaded=True))
-manager.add_command('shell', Shell(make_context=make_shell_context))
+@cli.command()
+def runserver():
+    """Run the development server."""
+    app.run(host='127.0.0.1', port=5000, debug=True, threaded=True)
+
 
 if __name__ == '__main__':
-    manager.run()
+    cli()

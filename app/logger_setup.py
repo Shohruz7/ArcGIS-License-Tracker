@@ -33,8 +33,9 @@ from app import app
 # Set the logging level
 app.logger.setLevel(app.config['LOG_LEVEL'])
 
-# Remove the stdout handler
-app.logger.removeHandler(app.logger.handlers[0])
+# Remove the stdout handler if it exists
+if app.logger.handlers:
+    app.logger.removeHandler(app.logger.handlers[0])
 
 TZ = pytz.timezone(app.config['TIMEZONE'])
 

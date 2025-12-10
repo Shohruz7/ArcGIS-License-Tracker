@@ -1,3 +1,5 @@
+import os
+import platform
 
 # license server names and ports. Default port is 27000.
 license_servers = [
@@ -5,8 +7,52 @@ license_servers = [
     # {"name": "MY-2ND-LICENSE-SERVER", "port": "27000"}
 ]
 
-# Path to the lmutil.exe.
-lm_util = r"C:\Program Files (x86)\ArcGIS\LicenseManager\bin\lmutil.exe"
+# Path to the lmutil executable (platform-specific)
+# On Windows: typically "C:\Program Files (x86)\ArcGIS\LicenseManager\bin\lmutil.exe"
+# On macOS: typically "/Library/Application Support/Esri/LicenseManager/bin/lmutil"
+# On Linux: typically "/opt/arcgis/licensemanager/bin/lmutil"
+system = platform.system()
+if system == "Windows":
+    # Windows default path
+    lm_util = os.getenv('LMUTIL_PATH', r"C:\Program Files (x86)\ArcGIS\LicenseManager\bin\lmutil.exe")
+elif system == "Darwin":  # macOS
+    # macOS default paths (try common locations)
+    possible_paths = [
+        "/Library/Application Support/Esri/LicenseManager/bin/lmutil",
+        "/Applications/ArcGIS/LicenseManager/bin/lmutil",
+        os.path.expanduser("~/Applications/ArcGIS/LicenseManager/bin/lmutil"),
+    ]
+    # Check if environment variable is set
+    env_path = os.getenv('LMUTIL_PATH')
+    if env_path:
+        lm_util = env_path
+    else:
+        # Try to find lmutil in common locations
+        lm_util = None
+        for path in possible_paths:
+            if os.path.exists(path) and os.access(path, os.X_OK):
+                lm_util = path
+                break
+        if not lm_util:
+            # Default fallback (user will need to update this)
+            lm_util = "/Library/Application Support/Esri/LicenseManager/bin/lmutil"
+else:  # Linux or other Unix-like
+    # Linux default paths
+    possible_paths = [
+        "/opt/arcgis/licensemanager/bin/lmutil",
+        "/usr/local/arcgis/licensemanager/bin/lmutil",
+    ]
+    env_path = os.getenv('LMUTIL_PATH')
+    if env_path:
+        lm_util = env_path
+    else:
+        lm_util = None
+        for path in possible_paths:
+            if os.path.exists(path) and os.access(path, os.X_OK):
+                lm_util = path
+                break
+        if not lm_util:
+            lm_util = "/opt/arcgis/licensemanager/bin/lmutil"
 
 # list of products to check for and track on license server. Each key is the internal software name.
 products = {

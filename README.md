@@ -10,54 +10,75 @@ A web application to display current and historical license usage from a concurr
 * Support for multiple license servers
 
 ## Requirements
- * Python >= 3.6
- * Windows OS
- * Local access to the `lmutil.exe` included with the license server installation.
+ * Python >= 3.8 (tested with Python 3.12)
+ * Windows, macOS, or Linux
+ * Local access to the `lmutil` executable included with the ArcGIS License Manager installation:
+   - **Windows**: `lmutil.exe` (typically in `C:\Program Files (x86)\ArcGIS\LicenseManager\bin\`)
+   - **macOS**: `lmutil` (typically in `/Library/Application Support/Esri/LicenseManager/bin/`)
+   - **Linux**: `lmutil` (typically in `/opt/arcgis/licensemanager/bin/`)
    
 ## Getting Started
 
 1. Clone the repo
-    ```
-    > git clone https://github.com/ishiland/arcgis-license-tracker.git
-    > cd arcgis-license-tracker
+    ```bash
+    git clone https://github.com/ishiland/arcgis-license-tracker.git
+    cd arcgis-license-tracker
     ```
 
-2. Initialize and activate a virtualenv:
+2. Create and activate a virtual environment:
+    
+    **On Windows:**
+    ```bash
+    python -m venv venv
+    venv\Scripts\activate
     ```
-    > python -m virtualenv venv
-    > venv\Scripts\activate
+    
+    **On macOS/Linux:**
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
     ```
 
 3. Install the dependencies:
-    ```
-    > pip install -r requirements.txt
+    ```bash
+    pip install --upgrade pip
+    pip install -r requirements.txt
     ```
 
 4. In `app/arcgis_config.py`, configure the following:
     * `license_servers` - List of license servers to track. The default port is 27000.
-    * `lm_util` - Path to your lmutil.exe. 
+    * `lm_util` - Path to your `lmutil` executable (automatically detected based on your OS, but you can override with `LMUTIL_PATH` environment variable).
+    
+    **Note**: The application will automatically detect your operating system and try to find `lmutil` in common installation locations. If it's installed elsewhere, you can either:
+    - Set the `LMUTIL_PATH` environment variable to the full path
+    - Or directly edit the `lm_util` variable in `app/arcgis_config.py` 
     
 5. Initialize the database
     
     Initialize the database using:
-    ```
-    > python manage.py recreate_db
+    ```bash
+    python manage.py recreate_db
     ```
 
 6. Test your license server configuration:
-    ```
-    > python manage.py read_once
+    ```bash
+    python manage.py read_once
     ```
   
 7. Run the development server:
+    ```bash
+    python manage.py runserver
     ```
-    > python manage.py runserver
+    
+    Or use Flask's built-in CLI:
+    ```bash
+    flask run
     ```
 
 8. Navigate to [http://localhost:5000](http://localhost:5000)
 
 ## Production
-After successfully testing in development, set the `FLASK_ENV` variable to `production` then initialize a production database using `python manage.py recreate_db`.
+After successfully testing in development, set the `FLASK_ENV` variable to `production` (or set `FLASK_DEBUG=0`) then initialize a production database using `python manage.py recreate_db`.
 
 ### Task Scheduler
 Configure Windows Task Scheduler to update the license data. The following settings should work for most cases: 

@@ -8,7 +8,7 @@ from app.logger_setup import logger
 
 def check_year(s_id):
     """
-    lmutil.exe does not provide a year with license data, this is a work-around to account for that. Checks in
+    lmutil does not provide a year with license data, this is a work-around to account for that. Checks in
     all licences if there is a difference between current year and the year of any checked out licenses.
     :param s_id: Id of server
     """
@@ -53,7 +53,7 @@ def parse_server_info(lines):
     if p == None:
         p = parse("{:^}:\n{}: LICENSE SERVER {:w} V{}\n{:^}", lines, case_sensitive=False)
     if p == None:
-        logger.info('Server status parse failed. Check read_licenses.parse_server_info against lmutil.exe output.')
+        logger.info('Server status parse failed. Check read_licenses.parse_server_info against lmutil output.')
     return p
 
 
@@ -121,7 +121,7 @@ def add_users_and_workstations(text):
 def read(license_file=None):
     """
     entry point for reading license data from a FlexLM license server.
-    :param license_file: manually pass in a license file in the same format the lmutil.exe displays data.
+    :param license_file: manually pass in a license file in the same format the lmutil displays data.
     :return:
     """
     for s in license_servers:

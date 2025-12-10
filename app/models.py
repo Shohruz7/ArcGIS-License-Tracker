@@ -1,8 +1,19 @@
 import datetime
 from app import db
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.ext.declarative import DeclarativeMeta
 import json
+
+# SQLAlchemy 2.0 compatibility
+try:
+    from sqlalchemy.orm import DeclarativeBase
+    # For SQLAlchemy 2.0+, check if it's a declarative base instance
+    def is_declarative_instance(obj):
+        return isinstance(obj, db.Model)
+except ImportError:
+    # Fallback for older SQLAlchemy
+    from sqlalchemy.ext.declarative import DeclarativeMeta
+    def is_declarative_instance(obj):
+        return isinstance(obj.__class__, DeclarativeMeta)
 
 
 class Server(db.Model):
@@ -33,7 +44,7 @@ class Updates(db.Model):
     info = db.Column(db.String(255), default=None)
     time_start = db.Column(db.DateTime)
     time_complete = db.Column(db.DateTime, default=None)
-    FlexLM_server = db.relationship(u'Server')
+    FlexLM_server = db.relationship('Server')
 
     def __repr__(self):
         return '<Updates %r>' % self.id
@@ -77,7 +88,7 @@ class Product(db.Model):
     version = db.Column(db.String(5))
     license_out = db.Column(db.Integer)
     license_total = db.Column(db.Integer)
-    FlexLM_server = db.relationship(u'Server')
+    FlexLM_server = db.relationship('Server')
 
     def __repr__(self):
         return '<Product %r>' % self.common_name
@@ -159,10 +170,10 @@ class History(db.Model):
     update_id = db.Column(db.Integer, db.ForeignKey("updates.id"), nullable=False)
     time_out = db.Column(db.DateTime, nullable=False)
     time_in = db.Column(db.DateTime, nullable=True)
-    FlexLM_product = db.relationship(u'Product')
-    FlexLM_update = db.relationship(u'Updates')
-    FlexLM_user = db.relationship(u'User')
-    FlexLM_workstation = db.relationship(u'Workstation')
+    FlexLM_product = db.relationship('Product')
+    FlexLM_update = db.relationship('Updates')
+    FlexLM_user = db.relationship('User')
+    FlexLM_workstation = db.relationship('Workstation')
 
     def __repr__(self):
         return '<History %r>' % self.id
@@ -219,7 +230,8 @@ class History(db.Model):
 # ----------------------------------------------------------------------------#
 class AlchemyEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj.__class__, DeclarativeMeta):
+        # Check if it's an SQLAlchemy model instance (compatible with both 1.x and 2.x)
+        if hasattr(obj, '__table__') or (hasattr(obj, '__class__') and hasattr(obj.__class__, '__table__')):
             # an SQLAlchemy class
             fields = {}
             for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
