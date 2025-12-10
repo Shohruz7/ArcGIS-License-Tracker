@@ -94,4 +94,5 @@ htmlcov/
 # mypy
 .mypy_cache/
 .dmypy.json
-dmypy.jsonhelper_guide.md
+
+helper_guide.md
