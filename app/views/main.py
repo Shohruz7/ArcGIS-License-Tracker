@@ -9,23 +9,79 @@ import humanize
 
 def serialize_dashboard_data(data):
     """serializes current license data for the dashboard"""
-    obj = {}
+    # Original structure: by server, then by product
+    obj_by_server = {}
+    # New structure: by product, then by server (for tabs)
+    obj_by_product = {}
+    
     for d in data:
-        if d[5] not in obj:
-            obj[d[5]] = {d[2]: {'users': [],
-                                'active': d[3],
-                                'total': d[4]}}
-            if d[6] is None:
-                obj[d[5]][d[2]]['users'].append({'workstation': d[0], 'username': d[1]})
-
+        server_name = d[5]
+        product_name = d[2]
+        active = d[3]
+        total = d[4]
+        workstation = d[0]
+        username = d[1]
+        time_in = d[6]
+        
+        # Build server-based structure (for backward compatibility)
+        if server_name not in obj_by_server:
+            obj_by_server[server_name] = {}
+        
+        if product_name not in obj_by_server[server_name]:
+            obj_by_server[server_name][product_name] = {
+                'users': [],
+                'active': active,
+                'total': total
+            }
         else:
-            if d[2] not in obj[d[5]]:
-                obj[d[5]][d[2]] = {'users': [],
-                                    'active': d[3],
-                                    'total': d[4]}
-            if d[6] is None:
-                obj[d[5]][d[2]]['users'].append({'workstation': d[0], 'username': d[1]})
-    return obj
+            # Update active/total if they differ (shouldn't happen, but be safe)
+            obj_by_server[server_name][product_name]['active'] = active
+            obj_by_server[server_name][product_name]['total'] = total
+        
+        if time_in is None:
+            obj_by_server[server_name][product_name]['users'].append({
+                'workstation': workstation,
+                'username': username
+            })
+        
+        # Build product-based structure (for tabs)
+        if product_name not in obj_by_product:
+            obj_by_product[product_name] = {}
+        
+        if server_name not in obj_by_product[product_name]:
+            obj_by_product[product_name][server_name] = {
+                'users': [],
+                'active': active,
+                'total': total
+            }
+        else:
+            # Update active/total if they differ (shouldn't happen, but be safe)
+            obj_by_product[product_name][server_name]['active'] = active
+            obj_by_product[product_name][server_name]['total'] = total
+        
+        if time_in is None:
+            obj_by_product[product_name][server_name]['users'].append({
+                'workstation': workstation,
+                'username': username
+            })
+    
+    # Filter out "ArcGIS Pro Advanced" from the products list
+    products_list = sorted(obj_by_product.keys())
+    products_list = [p for p in products_list if p.lower() != 'ArcGIS Pro Advanced']
+
+    # Filter out "ArcGIS Pro Advanced" from the products list
+    products_list = sorted(obj_by_product.keys())
+    # Debug: print all products found
+    print("DEBUG - All products:", products_list)
+    products_list = [p for p in products_list if 'advanced' not in p.lower()]
+    print("DEBUG - Filtered products:", products_list)
+    
+    return {
+        'by_server': obj_by_server,
+        'by_product': obj_by_product,
+        'products': products_list  # Filtered list of product names for tabs
+    }
+
 
 @app.route('/dashboard')
 @app.route('/')

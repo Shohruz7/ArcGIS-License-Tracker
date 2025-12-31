@@ -52,9 +52,12 @@ def read_once():
 
 
 @cli.command()
-def runserver():
+@click.option('--host', default='127.0.0.1', help='The host to bind to')
+@click.option('--port', default=5001, help='The port to bind to')
+def runserver(host, port):
     """Run the development server."""
-    app.run(host='127.0.0.1', port=5000, debug=True, threaded=True)
+    print(f"Starting server on http://{host}:{port}")
+    app.run(host=host, port=port, debug=True, threaded=True)
 
 
 if __name__ == '__main__':

@@ -2,7 +2,16 @@
 
 {% block title %} Dashboard {% endblock %}
 
-{% block javascript %}{% endblock %}
+{% block javascript %}
+<script type="text/javascript">
+    // Initialize tabs when page loads
+    $(document).ready(function() {
+        if (typeof calcite !== 'undefined') {
+            calcite.init();
+        }
+    });
+</script>
+{% endblock %}
 
 {% block banner %} Dashboard {% endblock %}
 
@@ -114,8 +123,89 @@
         <!-- End row -->
     </div>
 
-    {% if detail %}
-        {% for server_key, server_value in detail.items() %}
+    {% if detail and detail.products %}
+        {# Create tabs for each product #}
+        <div class="js-tab-group" data-tab="license-tabs">
+            <nav class="tab-nav" role="tablist">
+                {% for product in detail.products %}
+                    <a href="#" class="tab-title js-tab {{ 'is-active' if loop.first else '' }}" role="tab" aria-selected="{{ 'true' if loop.first else 'false' }}">
+                        {{ product }}
+                    </a>
+                {% endfor %}
+            </nav>
+            <div class="tab-contents">
+                {% for product in detail.products %}
+                    <section class="tab-section js-tab-section {{ 'is-active' if loop.first else '' }}" role="tabpanel">
+                        <div class="leader-1">
+                            <h3 class="font-size-2 trailer-half">
+                                <a href="{{ url_for('productname', product_name=product) }}" class="link-darkest-gray">{{ product }}</a>
+                            </h3>
+                            {# Show this product across all servers #}
+                            {% if product in detail.by_product %}
+                                {% for server_key, product_value in detail.by_product[product].items() %}
+                                    <div class="card card-wide trailer-1">
+                                        <div class="card-content padding-left-0 padding-right-0">
+                                            <div class="panel panel">
+                                                <a href="{{ url_for('servername', servername=server_key) }}" class="link-darkest-gray">
+                                                    <h4 class="font-size-2 trailer-0">{{ server_key }}</h4>
+                                                </a>
+                                            </div>
+                                            <div class="grid-container leader-half trailer-half">
+                                                <div class="column-24">
+                                                    <div class="card {{ 'card-bar-dark-blue' if product_value['active'] == 0 else 'card-bar-green' }} block">
+                                                        <div class="card-content">
+                                                            <div class="font-size-1 trailer-half">
+                                                                <strong>License Status</strong>
+                                                            </div>
+                                                            <div class="trailer-half">
+                                                                <mark class="label {{ 'label-yellow' if product_value['active'] == product_value['total'] else '' }} modifier-class">
+                                                                    {{ product_value['total'] - product_value['active'] }} of {{ product_value['total'] }} available
+                                                                </mark>
+                                                            </div>
+                                                            <div class="leader-half">
+                                                                {% if product_value['users'] | length %}
+                                                                    <strong>Current Users ({{ product_value['users'] | length }})</strong>
+                                                                    <table class="table overflow-auto trailer-0">
+                                                                        <thead>
+                                                                        <tr>
+                                                                            <th>Name</th>
+                                                                            <th>Workstation</th>
+                                                                        </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                        {% for user in product_value['users'] %}
+                                                                            <tr>
+                                                                                <td>
+                                                                                    <a href="{{ url_for('username', username=user['username']) }}">{{ user['username'] }}</a>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <a href="{{ url_for('workstationname', workstationname=user['workstation']) }}">{{ user['workstation'] }}</a>
+                                                                                </td>
+                                                                            </tr>
+                                                                        {% endfor %}
+                                                                        </tbody>
+                                                                    </table>
+                                                                {% else %}
+                                                                    <p class="font-size--1">No Current Users</p>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </section>
+                {% endfor %}
+            </div>
+        </div>
+
+    {% elif detail and detail.by_server %}
+        {# Fallback to old structure if new structure not available #}
+        {% for server_key, server_value in detail.by_server.items() %}
             <div class="card card-wide">
                 <div class="card-content padding-left-0 padding-right-0">
                     <div class="panel panel"> <a href="{{ url_for('servername', servername=server_key) }}" class="link-darkest-gray"><h4 class="font-size-2 trailer-0">{{ server_key }}</h4></a></div>
@@ -170,7 +260,11 @@
         {% endfor %}
 
     {% else %}
-        <div>No licenses in use.</div>
+        <div class="card">
+            <div class="card-content">
+                <p>No licenses in use.</p>
+            </div>
+        </div>
     {% endif %}
 
 
