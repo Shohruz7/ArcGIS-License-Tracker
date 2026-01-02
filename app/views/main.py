@@ -1,10 +1,113 @@
 from flask import render_template, make_response, jsonify, request
-from sqlalchemy import desc, asc, func, extract, and_
-from app import app, db
+from sqlalchemy import desc, asc, func, extract, and_, case, text
+from sqlalchemy.exc import SQLAlchemyError
+from functools import wraps
+from app import app, db, cache
 from app.models import User, Product, Server, Updates, History, Workstation, AlchemyEncoder
+from app.logger_setup import logger
 import json
 import datetime
 import humanize
+
+
+def get_date_diff_expression(start_date, end_date):
+    """
+    Returns a database-agnostic expression for calculating date difference in days.
+    Works with SQLite, SQL Server, PostgreSQL, and MySQL.
+    """
+    # Detect database dialect
+    try:
+        dialect = db.engine.dialect.name
+    except:
+        # Fallback if engine not initialized
+        dialect = 'sqlite'
+    
+    if dialect == 'sqlite':
+        # SQLite uses julianday
+        return func.julianday(end_date) - func.julianday(start_date)
+    elif dialect == 'mssql':
+        # SQL Server uses DATEDIFF
+        return func.datediff(text('day'), start_date, end_date)
+    elif dialect == 'postgresql':
+        # PostgreSQL uses EXTRACT with epoch
+        return func.extract('epoch', end_date - start_date) / 86400.0
+    elif dialect == 'mysql':
+        # MySQL uses DATEDIFF
+        return func.datediff(end_date, start_date)
+    else:
+        # Fallback: use SQLAlchemy's generic date arithmetic (works for most databases)
+        return func.extract('epoch', end_date - start_date) / 86400.0
+
+
+def get_coalesce_expression(*args):
+    """
+    Returns a database-agnostic COALESCE expression.
+    COALESCE works on SQLite, SQL Server, PostgreSQL, and MySQL.
+    """
+    return func.coalesce(*args)
+
+
+def handle_errors(f):
+    """Decorator to handle errors in routes with enhanced logging"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except SQLAlchemyError as e:
+            # Enhanced database error logging
+            error_context = {
+                'function': f.__name__,
+                'error_type': type(e).__name__,
+                'error_message': str(e),
+                'args': str(args)[:200],  # Limit length
+                'kwargs': {k: str(v)[:100] for k, v in kwargs.items()},
+                'request_path': request.path if request else 'N/A',
+                'request_method': request.method if request else 'N/A',
+            }
+            logger.error(f"Database error in {f.__name__}", extra=error_context, exc_info=True)
+            db.session.rollback()
+            return render_template('error.html', 
+                                 message='Database Error', 
+                                 detail='An error occurred while accessing the database. Please try again later. If this problem persists, contact your system administrator.'), 500
+        except ValueError as e:
+            error_context = {
+                'function': f.__name__,
+                'error_type': 'ValueError',
+                'error_message': str(e),
+                'request_path': request.path if request else 'N/A',
+            }
+            logger.warning(f"Value error in {f.__name__}: {str(e)}", extra=error_context)
+            return render_template('error.html', 
+                                 message='Invalid Request', 
+                                 detail=f'The request contained invalid data: {str(e)}. Please check your input and try again.'), 400
+        except KeyError as e:
+            error_context = {
+                'function': f.__name__,
+                'error_type': 'KeyError',
+                'error_message': str(e),
+                'request_path': request.path if request else 'N/A',
+            }
+            logger.warning(f"Key error in {f.__name__}: {str(e)}", extra=error_context)
+            return render_template('error.html', 
+                                 message='Missing Required Information', 
+                                 detail=f'Required information is missing: {str(e)}. Please ensure all required fields are provided.'), 400
+        except Exception as e:
+            # Enhanced unexpected error logging
+            error_context = {
+                'function': f.__name__,
+                'error_type': type(e).__name__,
+                'error_message': str(e),
+                'args': str(args)[:200],
+                'kwargs': {k: str(v)[:100] for k, v in kwargs.items()},
+                'request_path': request.path if request else 'N/A',
+                'request_method': request.method if request else 'N/A',
+                'user_agent': request.headers.get('User-Agent', 'N/A') if request else 'N/A',
+            }
+            logger.error(f"Unexpected error in {f.__name__}", extra=error_context, exc_info=True)
+            return render_template('error.html', 
+                                 message='An Unexpected Error Occurred', 
+                                 detail='An unexpected error occurred while processing your request. Our team has been notified. Please try again later or contact support if the problem persists.'), 500
+    return decorated_function
 
 
 def serialize_dashboard_data(data):
@@ -67,14 +170,8 @@ def serialize_dashboard_data(data):
     
     # Filter out "ArcGIS Pro Advanced" from the products list
     products_list = sorted(obj_by_product.keys())
-    products_list = [p for p in products_list if p.lower() != 'ArcGIS Pro Advanced']
-
-    # Filter out "ArcGIS Pro Advanced" from the products list
-    products_list = sorted(obj_by_product.keys())
-    # Debug: print all products found
-    print("DEBUG - All products:", products_list)
+    # Filter out products with 'advanced' in the name (case-insensitive)
     products_list = [p for p in products_list if 'advanced' not in p.lower()]
-    print("DEBUG - Filtered products:", products_list)
     
     return {
         'by_server': obj_by_server,
@@ -85,6 +182,8 @@ def serialize_dashboard_data(data):
 
 @app.route('/dashboard')
 @app.route('/')
+@cache.cached(timeout=60, key_prefix='dashboard')  # Cache for 60 seconds
+@handle_errors
 def dashboard():
     server_count = db.session.query(Server).count()
     user_count = db.session.query(User).count()
@@ -111,48 +210,81 @@ def dashboard():
                            detail=detail)
 
 @app.route('/data/server/availability')
+@handle_errors
 def server_availability():
     """
     Gets the core and extension product availability on a license server.
     :return: Availability of products on a license server.
     """
     s = request.args.get('servername')
-    core = db.session.query(Product, Server).filter(Product.type == 'core'). \
-        filter(Product.server_id == Server.id).filter(Server.name == s).all()
-    ext = db.session.query(Product, Server).filter(Product.type == 'extension'). \
-        filter(Product.server_id == Server.id).filter(Server.name == s).all()
-    return json.dumps(core + ext, cls=AlchemyEncoder)
+    if not s:
+        return jsonify({'error': 'servername parameter is required'}), 400
+    
+    # Sanitize input - only allow alphanumeric, dash, underscore, and dot
+    if not all(c.isalnum() or c in '-_.' for c in s):
+        return jsonify({'error': 'Invalid servername format'}), 400
+    
+    try:
+        core = db.session.query(Product, Server).filter(Product.type == 'core'). \
+            filter(Product.server_id == Server.id).filter(Server.name == s).all()
+        ext = db.session.query(Product, Server).filter(Product.type == 'extension'). \
+            filter(Product.server_id == Server.id).filter(Server.name == s).all()
+        return json.dumps(core + ext, cls=AlchemyEncoder)
+    except Exception as e:
+        logger.error(f"Error in server_availability: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve server availability'}), 500
 
 
 @app.route('/data/product/availability')
+@handle_errors
 def product_availability():
     """
-
     :return: Active users by product name
     """
     sname = request.args.get('servername')
     pname = request.args.get('product')
-    active = db.session.query(User.name, Workstation.name, Product.common_name,
-                              History.time_in, History.time_out, Server.name). \
-        filter(User.id == History.user_id). \
-        filter(Product.id == History.product_id). \
-        filter(Workstation.id == History.workstation_id). \
-        filter(Server.id == Product.server_id). \
-        filter(Product.internal_name == pname). \
-        filter(Server.name == sname). \
-        filter(History.time_in == None).all()
-    return jsonify(results=[[x for x in a] for a in active])
+    
+    if not sname or not pname:
+        return jsonify({'error': 'servername and product parameters are required'}), 400
+    
+    # Sanitize inputs
+    if not all(c.isalnum() or c in '-_. /' for c in sname):
+        return jsonify({'error': 'Invalid servername format'}), 400
+    if not all(c.isalnum() or c in '-_. /' for c in pname):
+        return jsonify({'error': 'Invalid product name format'}), 400
+    
+    try:
+        active = db.session.query(User.name, Workstation.name, Product.common_name,
+                                  History.time_in, History.time_out, Server.name). \
+            filter(User.id == History.user_id). \
+            filter(Product.id == History.product_id). \
+            filter(Workstation.id == History.workstation_id). \
+            filter(Server.id == Product.server_id). \
+            filter(Product.internal_name == pname). \
+            filter(Server.name == sname). \
+            filter(History.time_in == None).all()
+        return jsonify(results=[[x for x in a] for a in active])
+    except Exception as e:
+        logger.error(f"Error in product_availability: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve product availability'}), 500
 
 
 @app.route('/data/active_users')
+@handle_errors
 def active_users():
-    active = db.session.query(User).join(History).filter(History.time_in == None).join(
-        Product).filter(
-        Product.type == 'core').all()
-    return active
+    try:
+        active = db.session.query(User).join(History).filter(History.time_in == None).join(
+            Product).filter(
+            Product.type == 'core').all()
+        # Return JSON instead of raw objects
+        return jsonify([{'id': u.id, 'name': u.name} for u in active])
+    except Exception as e:
+        logger.error(f"Error in active_users: {str(e)}")
+        return jsonify({'error': 'Failed to retrieve active users'}), 500
 
 
 @app.route('/products')
+@handle_errors
 def products():
     all_products = db.session.query(Product.common_name, Product.license_out, Product.license_total, Server.name).filter(Product.server_id==Server.id).all()
     return render_template('pages/products.html',
@@ -160,12 +292,20 @@ def products():
 
 
 @app.route('/products/<product_name>')
+@handle_errors
 def productname(product_name):
+    # Sanitize product name from URL
+    if not product_name or len(product_name) > 100:
+        return render_template('error.html', 
+                             message='Invalid Product Name', 
+                             detail='The product name provided is invalid.'), 400
+    # Use database-agnostic date calculation
+    time_in_expr = get_coalesce_expression(History.time_in, datetime.datetime.now())
+    time_diff = get_date_diff_expression(History.time_out, time_in_expr)
+    
     users = db.session.query(User.name, History.time_in,
                              Server.name.label('servername'),
-                             func.sum(func.julianday(func.ifnull(History.calculated_timein,
-                                                                 datetime.datetime.now())) - func.julianday(
-                                 History.time_out)).label('time_sum')). \
+                             func.sum(time_diff).label('time_sum')). \
         filter(User.id == History.user_id). \
         filter(History.product_id == Product.id). \
         filter(Product.server_id == Server.id). \
@@ -222,11 +362,14 @@ def productname(product_name):
 
 
 @app.route('/users')
+@handle_errors
 def users():
+    # Use database-agnostic date calculation
+    time_in_expr = get_coalesce_expression(History.time_in, datetime.datetime.now())
+    time_diff = get_date_diff_expression(History.time_out, time_in_expr)
+    
     all_users = db.session.query(User.name, History.time_in,
-                                 func.sum(func.julianday(func.ifnull(History.calculated_timein,
-                                                                     datetime.datetime.now())) - func.julianday(
-                                     History.time_out)).label('time_sum')). \
+                                 func.sum(time_diff).label('time_sum')). \
         filter(User.id == History.user_id). \
         filter(History.product_id == Product.id). \
         filter(Product.type == 'core'). \
@@ -236,7 +379,13 @@ def users():
 
 
 @app.route('/users/<username>')
+@handle_errors
 def username(username):
+    # Sanitize username from URL
+    if not username or len(username) > 100:
+        return render_template('error.html', 
+                             message='Invalid Username', 
+                             detail='The username provided is invalid.'), 400
     workstations = db.session.query(Workstation, History). \
         filter(User.id == History.user_id). \
         filter(Workstation.id == History.workstation_id). \
@@ -250,10 +399,12 @@ def username(username):
         filter(User.name == username). \
         group_by(Server.name).distinct(Server.name).all()
 
+    # Use database-agnostic date calculation
+    time_in_expr = get_coalesce_expression(History.time_in, datetime.datetime.now())
+    time_diff = get_date_diff_expression(History.time_out, time_in_expr)
+    
     products = db.session.query(Product.common_name, Product.type, History.time_in,
-                                func.sum(func.julianday(func.ifnull(History.calculated_timein,
-                                                                    datetime.datetime.now())) - func.julianday(
-                                    History.time_out)).label('time_sum')). \
+                                func.sum(time_diff).label('time_sum')). \
         filter(User.id == History.user_id). \
         filter(User.name == username). \
         filter(History.product_id == Product.id). \
@@ -265,6 +416,7 @@ def username(username):
 
 
 @app.route('/servers')
+@handle_errors
 def servers():
     query = db.session.query(
         Server.name.label("name"),
@@ -277,7 +429,13 @@ def servers():
 
 
 @app.route('/servers/<servername>')
+@handle_errors
 def servername(servername):
+    # Sanitize servername from URL
+    if not servername or len(servername) > 100:
+        return render_template('error.html', 
+                             message='Invalid Server Name', 
+                             detail='The server name provided is invalid.'), 400
     status = db.session.query(Server, Updates). \
         filter(Server.id == Updates.server_id). \
         filter(Server.name == servername). \
@@ -316,11 +474,14 @@ def clear_log(servername):
 
 
 @app.route('/workstations')
+@handle_errors
 def workstations():
+    # Use database-agnostic date calculation
+    time_in_expr = get_coalesce_expression(History.time_in, datetime.datetime.now())
+    time_diff = get_date_diff_expression(History.time_out, time_in_expr)
+    
     all_ws = db.session.query(Workstation.name, History.time_in,
-                              func.sum(func.julianday(func.ifnull(History.calculated_timein,
-                                                                  datetime.datetime.now())) - func.julianday(
-                                  History.time_out)).label('time_sum')). \
+                              func.sum(time_diff).label('time_sum')). \
         filter(Workstation.id == History.workstation_id). \
         filter(History.product_id == Product.id). \
         filter(Product.type == 'core'). \
@@ -330,7 +491,13 @@ def workstations():
 
 
 @app.route('/workstations/<workstationname>')
+@handle_errors
 def workstationname(workstationname):
+    # Sanitize workstation name from URL
+    if not workstationname or len(workstationname) > 100:
+        return render_template('error.html', 
+                             message='Invalid Workstation Name', 
+                             detail='The workstation name provided is invalid.'), 400
     users = db.session.query(User.name, History.time_in). \
         filter(User.id == History.user_id). \
         filter(Workstation.id == History.workstation_id). \
@@ -344,10 +511,12 @@ def workstationname(workstationname):
         filter(Workstation.name == workstationname). \
         group_by(Server.name).distinct(Server.name).all()
 
+    # Use database-agnostic date calculation
+    time_in_expr = get_coalesce_expression(History.time_in, datetime.datetime.now())
+    time_diff = get_date_diff_expression(History.time_out, time_in_expr)
+    
     products = db.session.query(Product.common_name, Product.type, History.time_in,
-                                func.sum(func.julianday(func.ifnull(History.calculated_timein,
-                                                                    datetime.datetime.now())) - func.julianday(
-                                    History.time_out)).label('time_sum')). \
+                                func.sum(time_diff).label('time_sum')). \
         filter(Workstation.id == History.workstation_id). \
         filter(Workstation.name == workstationname). \
         filter(History.product_id == Product.id). \
