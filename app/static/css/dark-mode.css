@@ -1,0 +1,834 @@
+/* Dark Mode Styles - Comprehensive Override */
+
+body.dark-mode {
+    background-color: #1a1a1a !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .wrapper {
+    background-color: #1a1a1a !important;
+}
+
+/* Top Navigation */
+body.dark-mode .top-nav {
+    background-color: #2d2d2d !important;
+    border-bottom: 1px solid #404040 !important;
+}
+
+body.dark-mode .top-nav-title {
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .top-nav-link {
+    color: #b0b0b0 !important;
+    background-color: transparent !important;
+}
+
+body.dark-mode .top-nav-link:hover {
+    color: #ffffff !important;
+    background-color: transparent !important;
+    border-bottom-color: #0079c1 !important;
+}
+
+body.dark-mode .top-nav-link.is-active {
+    color: #ffffff !important;
+    background-color: transparent !important;
+    border-bottom-color: #0079c1 !important;
+}
+
+/* Banner */
+body.dark-mode .panel-dark-blue {
+    background-color: #004575 !important;
+}
+
+/* Cards and Panels - CRITICAL: Override all white backgrounds */
+body.dark-mode .card {
+    background-color: #2d2d2d !important;
+    border-color: #404040 !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .panel {
+    background-color: #2d2d2d !important;
+    border-color: #404040 !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .panel-header {
+    border-bottom-color: #404040 !important;
+    color: #e0e0e0 !important;
+    background-color: #2d2d2d !important;
+}
+
+body.dark-mode .card-content {
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .panel-content {
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+}
+
+/* Tables - Override all white backgrounds */
+body.dark-mode table {
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .table {
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .table-striped tbody tr {
+    background-color: #2d2d2d !important;
+}
+
+body.dark-mode .table-striped tbody tr:nth-child(odd) {
+    background-color: #252525 !important;
+}
+
+body.dark-mode .table-striped tbody tr:nth-child(even) {
+    background-color: #2d2d2d !important;
+}
+
+body.dark-mode .table-striped tbody tr:hover {
+    background-color: #353535 !important;
+}
+
+body.dark-mode table thead {
+    background-color: #252525 !important;
+}
+
+body.dark-mode table thead th {
+    background-color: #252525 !important;
+    color: #e0e0e0 !important;
+    border-color: #404040 !important;
+}
+
+body.dark-mode table tbody {
+    background-color: #2d2d2d !important;
+}
+
+body.dark-mode table tbody tr {
+    background-color: #2d2d2d !important;
+}
+
+body.dark-mode table tbody tr:nth-child(even) {
+    background-color: #252525 !important;
+}
+
+body.dark-mode table tbody tr:hover {
+    background-color: #353535 !important;
+}
+
+body.dark-mode table tbody td {
+    background-color: inherit !important;
+    border-color: #404040 !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .table-minimum {
+    background-color: #2d2d2d !important;
+}
+
+body.dark-mode .table-minimum tbody tr {
+    background-color: #2d2d2d !important;
+}
+
+body.dark-mode .table-minimum tbody tr:hover {
+    background-color: #353535 !important;
+}
+
+body.dark-mode .table-minimum tbody td,
+body.dark-mode .table-minimum thead th {
+    background-color: inherit !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .product-table {
+    background-color: #2d2d2d !important;
+}
+
+body.dark-mode .product-table tbody tr {
+    background-color: #2d2d2d !important;
+}
+
+body.dark-mode .product-table tbody tr:hover {
+    background-color: #353535 !important;
+}
+
+/* DataTables specific overrides */
+body.dark-mode .dataTables_wrapper {
+    color: #e0e0e0 !important;
+    background-color: transparent !important;
+}
+
+/* DataTables bottom wrapper - the entire footer area */
+body.dark-mode .dataTables_wrapper .dataTables_bottom {
+    background-color: transparent !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_length {
+    color: #b0b0b0 !important;
+    background-color: transparent !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_info {
+    color: #000000 !important;
+    background-color: #e0e0e0 !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 4px !important;
+    font-weight: 500 !important;
+    display: inline-block !important;
+}
+
+/* Make sure all text in the bottom area is visible */
+body.dark-mode .dataTables_wrapper .dataTables_bottom {
+    background-color: transparent !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_bottom * {
+    background-color: transparent !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_info {
+    background-color: #e0e0e0 !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_info * {
+    color: #000000 !important;
+    background-color: #e0e0e0 !important;
+}
+
+/* Override any white backgrounds in pagination area */
+body.dark-mode .dataTables_wrapper .dataTables_paginate,
+body.dark-mode .dataTables_wrapper .dataTables_paginate a,
+body.dark-mode .dataTables_wrapper .dataTables_paginate span,
+body.dark-mode .dataTables_wrapper .dataTables_paginate button {
+    background-color: transparent !important;
+}
+
+/* Style the pagination text elements */
+body.dark-mode .dataTables_wrapper .dataTables_paginate .ellipsis {
+    color: #e0e0e0 !important;
+    background-color: transparent !important;
+}
+
+/* Force override any remaining white backgrounds in DataTables bottom area */
+body.dark-mode .dataTables_wrapper .row:last-child,
+body.dark-mode .dataTables_wrapper .row:last-child > div,
+body.dark-mode .dataTables_wrapper .dataTables_scrollFoot,
+body.dark-mode .dataTables_wrapper .dataTables_scrollFootInner {
+    background-color: transparent !important;
+}
+
+/* Ensure all text in bottom area is visible */
+body.dark-mode .dataTables_wrapper .dataTables_bottom,
+body.dark-mode .dataTables_wrapper .dataTables_bottom > div,
+body.dark-mode .dataTables_wrapper .dataTables_bottom > div > div {
+    background-color: transparent !important;
+}
+
+/* Make sure pagination text is visible */
+body.dark-mode .dataTables_wrapper .dataTables_paginate a,
+body.dark-mode .dataTables_wrapper .dataTables_paginate span {
+    color: #000000 !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: #000000 !important;
+}
+
+/* DataTables Export Buttons - Make them highly visible */
+body.dark-mode .dt-buttons {
+    background-color: transparent !important;
+}
+
+body.dark-mode .dt-button,
+body.dark-mode button.dt-button,
+body.dark-mode div.dt-button,
+body.dark-mode a.dt-button {
+    background-color: #e0e0e0 !important;
+    border: 1px solid #b0b0b0 !important;
+    color: #000000 !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 4px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s !important;
+}
+
+body.dark-mode .dt-button:hover,
+body.dark-mode button.dt-button:hover,
+body.dark-mode div.dt-button:hover,
+body.dark-mode a.dt-button:hover {
+    background-color: #ffffff !important;
+    border-color: #0079c1 !important;
+    color: #000000 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 121, 193, 0.3) !important;
+}
+
+body.dark-mode .dt-button:active,
+body.dark-mode button.dt-button:active,
+body.dark-mode div.dt-button:active,
+body.dark-mode a.dt-button:active {
+    background-color: #0066a3 !important;
+    transform: translateY(0);
+}
+
+body.dark-mode .dt-button:focus,
+body.dark-mode button.dt-button:focus,
+body.dark-mode div.dt-button:focus,
+body.dark-mode a.dt-button:focus {
+    outline: 2px solid #0079c1 !important;
+    outline-offset: 2px !important;
+}
+
+/* DataTables Pagination Buttons - Make them highly visible */
+body.dark-mode .dataTables_wrapper .dataTables_paginate {
+    background-color: transparent !important;
+    color: #e0e0e0 !important;
+}
+
+/* Ensure pagination wrapper has no white background */
+body.dark-mode .dataTables_wrapper .dataTables_paginate,
+body.dark-mode .dataTables_wrapper .dataTables_paginate * {
+    background-color: transparent !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: #000000 !important;
+    background-color: #e0e0e0 !important;
+    border: 1px solid #b0b0b0 !important;
+    padding: 0.5rem 0.75rem !important;
+    margin: 0 0.25rem !important;
+    border-radius: 4px !important;
+    font-weight: 500 !important;
+    min-width: 2.5rem !important;
+    text-align: center !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #0079c1 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 121, 193, 0.3) !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: #0079c1 !important;
+    color: #ffffff !important;
+    border-color: #0079c1 !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 4px rgba(0, 121, 193, 0.4) !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background-color: #0089d1 !important;
+    border-color: #0089d1 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    color: #606060 !important;
+    background-color: #252525 !important;
+    border-color: #353535 !important;
+    cursor: not-allowed !important;
+    opacity: 0.5 !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+    background-color: #252525 !important;
+    border-color: #353535 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_length select {
+    background-color: #252525 !important;
+    border-color: #404040 !important;
+    color: #e0e0e0 !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: 4px !important;
+}
+
+body.dark-mode .dataTables_wrapper .dataTables_length select:focus {
+    border-color: #0079c1 !important;
+    outline: 2px solid #0079c1 !important;
+    outline-offset: 2px !important;
+}
+
+/* DataTables Button Info Notification (Copy to Clipboard popup) */
+body.dark-mode .dt-button-info {
+    background-color: #2d2d2d !important;
+    border: 2px solid #505050 !important;
+    color: #e0e0e0 !important;
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.dark-mode .dt-button-info h2 {
+    background-color: #252525 !important;
+    color: #e0e0e0 !important;
+    border-bottom: 1px solid #404040 !important;
+}
+
+body.dark-mode .dt-button-info > div {
+    color: #e0e0e0 !important;
+}
+
+/* Inputs and Forms */
+body.dark-mode .input {
+    background-color: #252525 !important;
+    border-color: #404040 !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .input:focus {
+    border-color: #0079c1 !important;
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .label {
+    color: #b0b0b0 !important;
+}
+
+body.dark-mode select {
+    background-color: #252525 !important;
+    border-color: #404040 !important;
+    color: #e0e0e0 !important;
+}
+
+/* Buttons */
+body.dark-mode .btn {
+    background-color: #404040 !important;
+    border-color: #505050 !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .btn:hover {
+    background-color: #505050 !important;
+    border-color: #606060 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .btn-clear {
+    background-color: transparent !important;
+    border-color: #404040 !important;
+    color: #b0b0b0 !important;
+}
+
+body.dark-mode .btn-clear:hover {
+    background-color: #353535 !important;
+    border-color: #505050 !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .js-filter-btn {
+    background-color: #252525 !important;
+    border-color: #404040 !important;
+    color: #b0b0b0 !important;
+}
+
+body.dark-mode .js-filter-btn:hover {
+    background-color: #353535 !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .js-filter-btn.is-active {
+    background-color: #0079c1 !important;
+    border-color: #0079c1 !important;
+    color: #ffffff !important;
+}
+
+/* Links */
+body.dark-mode a {
+    color: #4a9eff !important;
+}
+
+body.dark-mode a:hover {
+    color: #6bb3ff !important;
+}
+
+body.dark-mode .link-darkest-gray {
+    color: #b0b0b0 !important;
+}
+
+body.dark-mode .link-darkest-gray:hover {
+    color: #ffffff !important;
+}
+
+/* Footer */
+body.dark-mode .footer {
+    background-color: #252525 !important;
+    border-top-color: #404040 !important;
+    color: #b0b0b0 !important;
+}
+
+/* Server Cards */
+body.dark-mode .server-card {
+    background-color: #2d2d2d !important;
+    border-color: #404040 !important;
+}
+
+body.dark-mode .server-panel {
+    background-color: #2d2d2d !important;
+    border-color: #404040 !important;
+}
+
+/* Tabs - Fix white backgrounds */
+body.dark-mode .tab-nav {
+    background-color: #252525 !important;
+    border-bottom-color: #404040 !important;
+}
+
+body.dark-mode .tab-nav:after {
+    background-color: #404040 !important;
+}
+
+body.dark-mode .tab-title {
+    background-color: #252525 !important;
+    color: #b0b0b0 !important;
+    border-color: #404040 !important;
+}
+
+body.dark-mode .tab-title:hover,
+body.dark-mode .tab-title:focus {
+    background-color: #353535 !important;
+    color: #e0e0e0 !important;
+    border-color: #505050 !important;
+}
+
+body.dark-mode .tab-title.is-active {
+    background-color: #2d2d2d !important;
+    color: #0079c1 !important;
+    border-bottom-color: #0079c1 !important;
+}
+
+body.dark-mode .tab-title.is-active:hover {
+    background-color: #353535 !important;
+    color: #0089d1 !important;
+}
+
+body.dark-mode .tab-contents {
+    background-color: transparent !important;
+}
+
+body.dark-mode .tab-section {
+    background-color: transparent !important;
+}
+
+body.dark-mode .tab-section.is-active {
+    background-color: transparent !important;
+}
+
+/* JS Tab Group */
+body.dark-mode .js-tab-group {
+    background-color: transparent !important;
+}
+
+body.dark-mode .js-tab {
+    background-color: #252525 !important;
+    color: #b0b0b0 !important;
+}
+
+body.dark-mode .js-tab:hover {
+    background-color: #353535 !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .js-tab.is-active {
+    background-color: #2d2d2d !important;
+    color: #0079c1 !important;
+}
+
+body.dark-mode .js-tab-section {
+    background-color: transparent !important;
+}
+
+body.dark-mode .js-tab-section.is-active {
+    background-color: transparent !important;
+}
+
+/* Dashboard specific */
+body.dark-mode .dashbuttons .card {
+    background-color: #2d2d2d !important;
+    border-color: #404040 !important;
+}
+
+body.dark-mode .dashbuttons .card-content {
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .dashbuttons a {
+    color: #b0b0b0 !important;
+}
+
+body.dark-mode .dashbuttons a:hover {
+    color: #ffffff !important;
+}
+
+body.dark-mode .card-hover {
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .card-hover:hover {
+    background-color: #353535 !important;
+    color: #ffffff !important;
+}
+
+/* Grid and Layout */
+body.dark-mode .grid-container {
+    background-color: transparent !important;
+}
+
+body.dark-mode .block-group {
+    background-color: transparent !important;
+}
+
+body.dark-mode .column-24,
+body.dark-mode .column-27 {
+    background-color: transparent !important;
+}
+
+body.dark-mode .block {
+    background-color: transparent !important;
+}
+
+/* Labels and badges */
+body.dark-mode .label {
+    background-color: #404040 !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .label-yellow {
+    background-color: #ff9800 !important;
+    color: #1a1a1a !important;
+}
+
+/* Card bars */
+body.dark-mode .card-bar-green {
+    border-left-color: #4caf50 !important;
+}
+
+body.dark-mode .card-bar-dark-blue {
+    border-left-color: #0079c1 !important;
+}
+
+body.dark-mode .card-bar-orange {
+    border-left-color: #ff9800 !important;
+}
+
+body.dark-mode .card-bar-blue {
+    border-left-color: #2196f3 !important;
+}
+
+body.dark-mode .card-bar-light-blue {
+    border-left-color: #03a9f4 !important;
+}
+
+body.dark-mode .card-bar-purple {
+    border-left-color: #9c27b0 !important;
+}
+
+/* Mark elements */
+body.dark-mode mark {
+    background-color: #404040 !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .hidden-td {
+    background-color: #252525 !important;
+}
+
+body.dark-mode .no-licenses {
+    background-color: #3d2d1d !important;
+}
+
+/* Icons */
+body.dark-mode .icon-ui-green {
+    color: #4caf50 !important;
+}
+
+body.dark-mode .icon-ui-orange {
+    color: #ff9800 !important;
+}
+
+body.dark-mode .icon-ui-red {
+    color: #f44336 !important;
+}
+
+body.dark-mode .icon-ui-blue {
+    color: #2196f3 !important;
+}
+
+body.dark-mode .icon-ui-light-blue {
+    color: #03a9f4 !important;
+}
+
+body.dark-mode .icon-ui-purple {
+    color: #9c27b0 !important;
+}
+
+/* Loader */
+body.dark-mode .loader-bars {
+    border-color: #404040 !important;
+}
+
+body.dark-mode .loader-bars::before,
+body.dark-mode .loader-bars::after {
+    border-color: #0079c1 !important;
+}
+
+/* Error Page */
+body.dark-mode .error-container {
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .error-message {
+    color: #ffffff !important;
+}
+
+body.dark-mode .error-detail {
+    color: #b0b0b0 !important;
+}
+
+body.dark-mode .error-code {
+    color: #808080 !important;
+}
+
+/* Selection */
+body.dark-mode ::selection {
+    background: #0079c1 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode ::-moz-selection {
+    background: #0079c1 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode ::-webkit-selection {
+    background: #0079c1 !important;
+    color: #ffffff !important;
+}
+
+/* Theme Toggle Button - Top Right of Banner */
+.panel-dark-blue {
+    position: relative;
+}
+
+.theme-toggle {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #ffffff;
+    font-size: 1.2rem;
+    line-height: 1;
+    z-index: 100;
+    padding: 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .theme-toggle {
+    background-color: rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+body.dark-mode .theme-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.theme-toggle-icon {
+    display: inline-block;
+    width: 1.2rem;
+    height: 1.2rem;
+    line-height: 1;
+}
+
+/* Moon/Sun icon SVG */
+.theme-toggle-icon svg {
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+    fill: none;
+}
+
+/* Sun icon (shown in dark mode) */
+.theme-toggle-icon svg.sun-icon {
+    fill: #ffd700;
+    stroke: #ffd700;
+}
+
+/* Override Calcite Web default white backgrounds */
+body.dark-mode .display tbody tr {
+    background-color: #2d2d2d !important;
+}
+
+body.dark-mode .display tbody tr:nth-child(even) {
+    background-color: #252525 !important;
+}
+
+body.dark-mode .display tbody tr:hover {
+    background-color: #353535 !important;
+}
+
+body.dark-mode .display thead th {
+    background-color: #252525 !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .display tbody td {
+    background-color: inherit !important;
+    color: #e0e0e0 !important;
+}
+
+/* Force override any remaining white backgrounds */
+body.dark-mode [style*="background-color: white"],
+body.dark-mode [style*="background-color: #fff"],
+body.dark-mode [style*="background-color: #ffffff"] {
+    background-color: #2d2d2d !important;
+}
+
+/* Text colors */
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6 {
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode p {
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode strong {
+    color: #ffffff !important;
+}

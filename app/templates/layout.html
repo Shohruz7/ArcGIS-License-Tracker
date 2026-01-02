@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/buttons.dataTables.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dark-mode.css') }}">
     {% block css %}{% endblock %}
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/app.js') }}"></script>
@@ -65,7 +68,14 @@
     </header>
 
     <!-- banner -->
-    <div class="panel panel-dark-blue trailer-half">
+    <div class="panel panel-dark-blue trailer-half" style="position: relative;">
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <span class="theme-toggle-icon" id="theme-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </span>
+        </button>
         <div class="grid-container">
             <div class="column-24">
                 <h1 class="sub-nav-title text-white">{% block banner %}{% endblock %}</h1>
@@ -98,6 +108,81 @@
 <script>
     calcite.init();
     calcite.modal();
+</script>
+<!-- Dark Mode Toggle -->
+<script>
+(function() {
+    // Wait for DOM to be ready
+    function initDarkMode() {
+        // Get theme preference from localStorage or default to light
+        function getThemePreference() {
+            const saved = localStorage.getItem('theme');
+            if (saved) {
+                return saved;
+            }
+            // Check system preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                return 'dark';
+            }
+            return 'light';
+        }
+
+        // Apply theme
+        function applyTheme(theme) {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            
+            if (!body) return;
+            
+            if (theme === 'dark') {
+                body.classList.add('dark-mode');
+                // Show sun icon in dark mode
+                if (icon) {
+                    icon.innerHTML = '<svg viewBox="0 0 24 24" fill="#ffd700" stroke="#ffd700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+                }
+            } else {
+                body.classList.remove('dark-mode');
+                // Show moon icon in light mode
+                if (icon) {
+                    icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+                }
+            }
+            
+            // Save preference
+            localStorage.setItem('theme', theme);
+        }
+
+        // Initialize theme on page load
+        const currentTheme = getThemePreference();
+        applyTheme(currentTheme);
+
+        // Toggle theme on button click
+        const toggleBtn = document.getElementById('theme-toggle');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                const isDark = document.body.classList.contains('dark-mode');
+                applyTheme(isDark ? 'light' : 'dark');
+            });
+        }
+
+        // Listen for system theme changes
+        if (window.matchMedia) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+                // Only auto-switch if user hasn't manually set a preference
+                if (!localStorage.getItem('theme')) {
+                    applyTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+        }
+    }
+
+    // Run immediately if DOM is ready, otherwise wait
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDarkMode);
+    } else {
+        initDarkMode();
+    }
+})();
 </script>
 </body>
 </html>
