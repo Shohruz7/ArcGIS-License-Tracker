@@ -2,44 +2,65 @@
 
 {% block title %} Workstations {% endblock %}
 
-{% block banner %}
-    Workstations
-{% endblock %}
+{% block css %}{% endblock %}
+
+{% block banner %} Workstations {% endblock %}
 
 {% block content %}
     <div class="grid-container">
         <div class="card block trailer-1">
             <div class="panel">
-                <div class="panel-header">All Workstations</div>
-                {% if ws %}
-                    <table class="modifier-class table-striped display trailer-1" id="ws-table" cellspacing="0"
-                           width="100%">
-                    <thead>
-                    <tr>
-                        <th>Workstation</th>
-                        <th>Cumulative Time</th>
-                        <th>Last Use</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for w in ws %}
-                        <tr class='clickable-row' data-href="{{ url_for('workstationname', workstationname=w.name) }}">
-                            <td>{{ w.name }}</td>
-                            <td data-sort="{{ w.time_sum }}">{{ w.time_sum | delta_time }}</td>
-
-                            {% if w.time_in == None %}
-                                <td><span class="icon-ui-check-mark icon-ui-green font-size-1">Active</span></td>
-                            {% else %}
-                                <td>{{ w.time_in }}</td>
-                            {% endif %}
+                <div class="panel-header">
+                    <h3 class="font-size-2 trailer-0">All Workstations</h3>
+                </div>
+                <div class="panel-content">
+                    <div class="workstations-controls">
+                        <div class="workstations-search">
+                            <label class="label" for="ws-search-input">Search Workstations</label>
+                            <input class="input" type="text" id="ws-search-input" placeholder="Type to search...">
+                        </div>
+                        <div class="workstations-filters">
+                            <label class="label">Filter:</label>
+                            <button class="js-filter-btn" data-filter="all">All</button>
+                            <button class="js-filter-btn" data-filter="active">Active</button>
+                            <button class="js-filter-btn" data-filter="inactive">Inactive</button>
+                        </div>
+                    </div>
+                    {% if ws %}
+                        <table class="modifier-class table-striped display trailer-1" id="ws-table" cellspacing="0"
+                               width="100%">
+                        <thead>
+                        <tr>
+                            <th>Workstation</th>
+                            <th>Cumulative Time</th>
+                            <th>Last Use</th>
+                            <th>Status</th>
                         </tr>
-                    {% endfor %}
-                    </tbody>
-                {% else %}
-                    No Workstation Data.
-                {% endif %}
-                </table>
+                        </thead>
+                        <tbody>
+                        {% for w in ws %}
+                            <tr class='clickable-row' data-href="{{ url_for('workstationname', workstationname=w.name) }}"
+                                data-status="{{ 'active' if w.time_in == None else 'inactive' }}">
+                                <td>{{ w.name }}</td>
+                                <td data-sort="{{ w.time_sum }}">{{ w.time_sum | delta_time }}</td>
+                                {% if w.time_in == None %}
+                                    <td><span class="icon-ui-check-mark icon-ui-green font-size-1">Active</span></td>
+                                    <td data-sort="1">Active</td>
+                                {% else %}
+                                    <td>{{ w.time_in | relative_time }}</td>
+                                    <td data-sort="0">Inactive</td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    {% else %}
+                        <p>No Workstation Data.</p>
+                    {% endif %}
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 {% endblock %}
+
+{% block javascript %}{% endblock %}

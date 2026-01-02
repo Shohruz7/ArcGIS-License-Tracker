@@ -2,36 +2,63 @@
 
 {% block title %} Servers {% endblock %}
 
-{% block javascript %}{% endblock %}
+{% block css %}{% endblock %}
 
 {% block banner %} License Servers {% endblock %}
 
 {% block content %}
     <div class="grid-container">
-        {% if servers %}
-            {% for s in servers %}
-                <div class="card card-wide trailer-1">
-                    {% if s.status == 'UP' %}
-                        <div class="panel server-panel" style="width:100%">
-                            <span class="icon-ui-check-mark icon-ui-green font-size-2">{{ s.name }} </span>
-                            <span class="center-text"> Last updated {{ s.maxdate | relative_time }}</span>
-                            <a href="{{ url_for('servername', servername=s.name) }}">
-                                <button class="btn modifier-class" style="float: right;"> View Details</button>
-                            </a>
-                        </div>
-                    {% else %}
-                        <div class="panel server-panel" style="width:100%">
-                            <span class="icon-ui-notice-round icon-ui-orange font-size-2">{{ s.name }} </span>
-                            <span class="center-text"> Last updated {{ s.maxdate | relative_time }}</span>
-                            <a href="{{ url_for('servername', servername=s.name) }}">
-                                <button class="btn modifier-class" style="float: right;"> View Details</button>
-                            </a>
-                        </div>
-                    {% endif %}
+        <div class="card block trailer-1">
+            <div class="panel">
+                <div class="panel-header">
+                    <h3 class="font-size-2 trailer-0">License Servers</h3>
                 </div>
-            {% endfor %}
+                <div class="panel-content">
+                    <div class="servers-controls">
+                        <div class="servers-search">
+                            <label class="label" for="servers-search-input">Search Servers</label>
+                            <input class="input" type="text" id="servers-search-input" placeholder="Type to search...">
+                        </div>
+                        <div class="servers-filters">
+                            <label class="label">Filter:</label>
+                            <button class="js-filter-btn" data-filter="all">All</button>
+                            <button class="js-filter-btn" data-filter="up">Online</button>
+                            <button class="js-filter-btn" data-filter="down">Offline</button>
+                        </div>
+                    </div>
+                    <div id="servers-list">
+                        {% if servers %}
+                            {% for s in servers %}
+                                <div class="card card-wide trailer-1 server-card" 
+                                     data-servername="{{ s.name|lower }}" 
+                                     data-status="{{ s.status|lower }}">
+                                    {% if s.status == 'UP' %}
+                                        <div class="panel server-panel" style="width:100%">
+                                            <span class="icon-ui-check-mark icon-ui-green font-size-2">{{ s.name }} </span>
+                                            <span class="center-text"> Last updated {{ s.maxdate | relative_time }}</span>
+                                            <a href="{{ url_for('servername', servername=s.name) }}">
+                                                <button class="btn modifier-class" style="float: right;"> View Details</button>
+                                            </a>
+                                        </div>
+                                    {% else %}
+                                        <div class="panel server-panel" style="width:100%">
+                                            <span class="icon-ui-notice-round icon-ui-orange font-size-2">{{ s.name }} </span>
+                                            <span class="center-text"> Last updated {{ s.maxdate | relative_time }}</span>
+                                            <a href="{{ url_for('servername', servername=s.name) }}">
+                                                <button class="btn modifier-class" style="float: right;"> View Details</button>
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p>No servers found.</p>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-        {% else %}
-            No servers found.
-        {% endif %}
+        </div>
+    </div>
 {% endblock %}
+
+{% block javascript %}{% endblock %}

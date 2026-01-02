@@ -1,0 +1,26 @@
+/* Page-specific styles */
+
+/* Users page */
+#user-table_wrapper {
+    margin-top: 1rem;
+}
+
+/* Products page */
+#products-table_wrapper {
+    margin-top: 1rem;
+}
+
+/* Workstations page */
+#ws-table_wrapper {
+    margin-top: 1rem;
+}
+
+/* Servers page */
+.server-card {
+    margin-bottom: 1rem;
+}
+
+.server-card.hidden {
+    display: none;
+}
+

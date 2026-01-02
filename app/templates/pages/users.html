@@ -2,9 +2,7 @@
 
 {% block title %} Users {% endblock %}
 
-{% block css %}
-
-{% endblock %}
+{% block css %}{% endblock %}
 
 {% block banner %} Users {% endblock %}
 
@@ -12,40 +10,60 @@
     <div class="grid-container">
         <div class="card block trailer-1">
             <div class="panel">
-                <div class="panel-header">All Users</div>
-                <div class="loader is-active padding-leader-3 padding-trailer-3">
-                    <div class="loader-bars"></div>
-                    <div class="loader-text">Loading...</div>
+                <div class="panel-header">
+                    <h3 class="font-size-2 trailer-0">All Users</h3>
                 </div>
-                {% if users %}
-                    <table class="modifier-class table-striped display trailer-1" id="user-table" cellspacing="0"
-                           width="100%">
-                    <thead>
-                    <tr>
-                        <th>User</th>
-                        <th>Cumulative Time</th>
-                        <th>Last Use</th>
-                    </tr>
-                    </thead>
-                    <script>$(".loader").hide()</script>
-                    <tbody>
-                    {% for user in users %}
-                        <tr class='clickable-row' data-href="{{ url_for('username', username=user.name) }}">
-                            <td>{{ user.name }}</td>
-                            <td data-sort="{{ user.time_sum }}">{{ user.time_sum | delta_time }}</td>
-                            {% if user.time_in == None %}
-                                <td><span class="icon-ui-check-mark icon-ui-green font-size-1">Active</span></td>
-                            {% else %}
-                                <td>{{ user.time_in }}</td>
-                            {% endif %}
+                <div class="panel-content">
+                    <div class="users-controls">
+                        <div class="users-search">
+                            <label class="label" for="user-search-input">Search Users</label>
+                            <input class="input" type="text" id="user-search-input" placeholder="Type to search...">
+                        </div>
+                        <div class="users-filters">
+                            <label class="label">Filter:</label>
+                            <button class="js-filter-btn" data-filter="all">All</button>
+                            <button class="js-filter-btn" data-filter="active">Active</button>
+                            <button class="js-filter-btn" data-filter="inactive">Inactive</button>
+                        </div>
+                    </div>
+                    <div class="loader is-active padding-leader-3 padding-trailer-3">
+                        <div class="loader-bars"></div>
+                        <div class="loader-text">Loading...</div>
+                    </div>
+                    {% if users %}
+                        <table class="modifier-class table-striped display trailer-1" id="user-table" cellspacing="0"
+                               width="100%">
+                        <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Cumulative Time</th>
+                            <th>Last Use</th>
+                            <th>Status</th>
                         </tr>
-                    {% endfor %}
-                    </tbody>
-                {% else %}
-                    <script>$(".loader").hide()</script>
-                    No User Data.
-                {% endif %}
-                </table>
+                        </thead>
+                        <script>$(".loader").hide()</script>
+                        <tbody>
+                        {% for user in users %}
+                            <tr class='clickable-row' data-href="{{ url_for('username', username=user.name) }}" 
+                                data-status="{{ 'active' if user.time_in == None else 'inactive' }}">
+                                <td>{{ user.name }}</td>
+                                <td data-sort="{{ user.time_sum }}">{{ user.time_sum | delta_time }}</td>
+                                {% if user.time_in == None %}
+                                    <td><span class="icon-ui-check-mark icon-ui-green font-size-1">Active</span></td>
+                                    <td data-sort="1">Active</td>
+                                {% else %}
+                                    <td>{{ user.time_in | relative_time }}</td>
+                                    <td data-sort="0">Inactive</td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    {% else %}
+                        <script>$(".loader").hide()</script>
+                        <p>No User Data.</p>
+                    {% endif %}
+                    </table>
+                </div>
             </div>
         </div>
     </div>

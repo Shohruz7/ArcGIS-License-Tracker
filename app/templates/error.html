@@ -1,15 +1,47 @@
 {% extends "layout.html" %}
 
-{% block head %}
-    {{ super() }}
+{% block title %} Error {% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/error.css') }}">
 {% endblock %}
 
+{% block banner %} Error {% endblock %}
+
 {% block content %}
-
-    <div class="error-box" align="center">
-        <img class="ui medium image error-image" src="{{ url_for('static', filename='img/error.png') }}">
-        <h1 class="ui header">{{ message }}</h1>
-        <div>{{ detail }}</div>
+    <div class="grid-container">
+        <div class="card block">
+            <div class="panel">
+                <div class="error-container">
+                    <div class="error-icon">
+                        <span class="icon-ui-notice-round"></span>
+                    </div>
+                    <h1 class="error-message">{{ message or 'An Error Occurred' }}</h1>
+                    <div class="error-detail">
+                        {% if detail %}
+                            {{ detail }}
+                        {% else %}
+                            We're sorry, but something went wrong. Please try again later or contact support if the problem persists.
+                        {% endif %}
+                    </div>
+                    <div class="error-actions">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-clear">
+                            <span class="icon-ui-home"></span> Go to Dashboard
+                        </a>
+                        <button onclick="window.history.back()" class="btn btn-clear">
+                            <span class="icon-ui-left"></span> Go Back
+                        </button>
+                        <a href="javascript:location.reload()" class="btn btn-clear">
+                            <span class="icon-ui-refresh"></span> Reload Page
+                        </a>
+                    </div>
+                    {% if request %}
+                        <div class="error-code">
+                            Error occurred at: {{ request.path }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
-
 {% endblock %}

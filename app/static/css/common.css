@@ -1,0 +1,97 @@
+/* Common styles for search, filter, and table controls */
+
+/* Shared control layout */
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.search-container {
+    flex: 1;
+    min-width: 250px;
+    max-width: 400px;
+}
+
+.filters-container {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Filter buttons - shared across all pages */
+.js-filter-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #cccccc;
+    background-color: #f8f8f8;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.js-filter-btn:hover {
+    background-color: #e8e8e8;
+}
+
+.js-filter-btn.is-active {
+    background-color: #0079c1;
+    color: white;
+    border-color: #0079c1;
+}
+
+/* DataTables customization - hide default search */
+.dataTables_wrapper .dataTables_filter {
+    display: none;
+}
+
+/* DataTables export buttons */
+.dataTables_wrapper .dt-buttons {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.dataTables_wrapper .dt-button {
+    padding: 0.5rem 1rem;
+    margin: 0;
+}
+
+/* Panel header styling */
+.panel-header {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e8e8e8;
+    margin-bottom: 1rem;
+}
+
+/* Page-specific control classes (for specificity) */
+.users-controls,
+.products-controls,
+.workstations-controls,
+.servers-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.users-search,
+.products-search,
+.workstations-search,
+.servers-search {
+    flex: 1;
+    min-width: 250px;
+    max-width: 400px;
+}
+
+.users-filters,
+.products-filters,
+.workstations-filters,
+.servers-filters {
+    display: flex;
+    gap: 0.5rem;
+}
+
