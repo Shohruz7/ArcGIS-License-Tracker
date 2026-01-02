@@ -17,6 +17,9 @@ except ImportError:
 
 
 class Server(db.Model):
+    __table_args__ = (
+        db.Index('idx_server_name', 'name'),  # For filtering by server name
+    )
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(35), nullable=False, unique=True)
     port = db.Column(db.String(10), nullable=False)
@@ -38,6 +41,13 @@ class Server(db.Model):
 
 
 class Updates(db.Model):
+    __table_args__ = (
+        db.Index('idx_updates_server_id', 'server_id'),  # For JOINs with Server
+        db.Index('idx_updates_status', 'status'),  # For filtering by status
+        db.Index('idx_updates_time_start', 'time_start'),  # For sorting by time
+        db.Index('idx_updates_time_complete', 'time_complete'),  # For filtering by completion time
+        db.Index('idx_updates_server_time', 'server_id', 'time_start'),  # Composite: server + time queries
+    )
     id = db.Column(db.Integer, primary_key=True)
     server_id = db.Column(db.Integer, db.ForeignKey("server.id"), nullable=False)
     status = db.Column(db.String(8))
@@ -77,6 +87,11 @@ class Product(db.Model):
     __table_args__ = (
         db.UniqueConstraint('server_id', 'internal_name', name='UQ_server_internalname'),
         db.UniqueConstraint('server_id', 'common_name', name='UQ_server_commonname'),
+        db.Index('idx_product_server_id', 'server_id'),  # For JOINs with Server
+        db.Index('idx_product_common_name', 'common_name'),  # For filtering by product name
+        db.Index('idx_product_internal_name', 'internal_name'),  # For filtering by internal name
+        db.Index('idx_product_type', 'type'),  # For filtering by type (core/extension)
+        db.Index('idx_product_server_type', 'server_id', 'type'),  # Composite: server + type queries
     )
     id = db.Column(db.Integer, primary_key=True)
     server_id = db.Column(db.Integer, db.ForeignKey("server.id"), nullable=False)
@@ -119,6 +134,9 @@ class Product(db.Model):
 
 
 class Workstation(db.Model):
+    __table_args__ = (
+        db.Index('idx_workstation_name', 'name'),  # For filtering by workstation name
+    )
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(25), nullable=False, unique=True)
 
@@ -137,6 +155,9 @@ class Workstation(db.Model):
 
 
 class User(db.Model):
+    __table_args__ = (
+        db.Index('idx_user_name', 'name'),  # For filtering by username
+    )
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(25), nullable=False, unique=True)
 
@@ -163,6 +184,20 @@ class User(db.Model):
 
 
 class History(db.Model):
+    __table_args__ = (
+        # Foreign key indexes - critical for JOINs
+        db.Index('idx_history_user_id', 'user_id'),  # For JOINs with User
+        db.Index('idx_history_workstation_id', 'workstation_id'),  # For JOINs with Workstation
+        db.Index('idx_history_product_id', 'product_id'),  # For JOINs with Product
+        db.Index('idx_history_update_id', 'update_id'),  # For JOINs with Updates
+        # Date indexes - for sorting and filtering
+        db.Index('idx_history_time_out', 'time_out'),  # For sorting by checkout time
+        db.Index('idx_history_time_in', 'time_in'),  # For filtering active licenses (time_in IS NULL)
+        # Composite indexes - for common query patterns
+        db.Index('idx_history_user_timein', 'user_id', 'time_in'),  # User + active status queries
+        db.Index('idx_history_product_timein', 'product_id', 'time_in'),  # Product + active status queries
+        db.Index('idx_history_workstation_timein', 'workstation_id', 'time_in'),  # Workstation + active status
+    )
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     workstation_id = db.Column(db.Integer, db.ForeignKey("workstation.id"), nullable=False)

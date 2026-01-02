@@ -20,5 +20,9 @@ else:
 from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy(app)
 
+# Setup caching
+from flask_caching import Cache
+cache = Cache(app)
+
 # Import the views
 from app.views import main, error
