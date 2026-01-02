@@ -95,4 +95,4 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 
-helper_guide.md
+perf.md
