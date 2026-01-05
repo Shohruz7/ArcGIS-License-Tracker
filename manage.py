@@ -147,10 +147,62 @@ def read_once():
 @cli.command()
 @click.option('--host', default='127.0.0.1', help='The host to bind to')
 @click.option('--port', default=5001, help='The port to bind to')
-def runserver(host, port):
+@click.option('--no-scheduler', is_flag=True, help='Disable automatic scheduler startup')
+def runserver(host, port, no_scheduler):
     """Run the development server."""
+    if not no_scheduler:
+        # Start the scheduler automatically when running the server
+        from app.scheduler_jobs import start_scheduler
+        with app.app_context():
+            start_scheduler()
+            print("✓ Background scheduler started (license reading will run automatically)")
+    
     print(f"Starting server on http://{host}:{port}")
     app.run(host=host, port=port, debug=True, threaded=True)
+
+
+@cli.command()
+def scheduler_start():
+    """Start the background scheduler for automated license reading."""
+    from app.scheduler_jobs import start_scheduler, get_scheduler_status
+    with app.app_context():
+        start_scheduler()
+        status = get_scheduler_status()
+        print("✓ Scheduler started")
+        if status['job_exists']:
+            print(f"  Next run: {status['next_run_time']}")
+            print(f"  Interval: {status['interval_minutes']} minutes")
+
+
+@cli.command()
+def scheduler_stop():
+    """Stop the background scheduler."""
+    from app.scheduler_jobs import stop_scheduler
+    with app.app_context():
+        stop_scheduler()
+        print("✓ Scheduler stopped")
+
+
+@cli.command()
+def scheduler_status():
+    """Show the current status of the background scheduler."""
+    from app.scheduler_jobs import get_scheduler_status
+    with app.app_context():
+        status = get_scheduler_status()
+        print("Scheduler Status:")
+        print(f"  Running: {'Yes' if status['running'] else 'No'}")
+        print(f"  Job exists: {'Yes' if status['job_exists'] else 'No'}")
+        if status['next_run_time']:
+            print(f"  Next run: {status['next_run_time']}")
+        if status['interval_minutes']:
+            print(f"  Interval: {status['interval_minutes']} minutes")
+        else:
+            print("  Interval: Not configured")
+
+
+# Flask-Migrate commands (delegated to flask db commands)
+# Users can use: flask db init, flask db migrate, flask db upgrade, flask db downgrade
+# These are available via Flask CLI, not through manage.py
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-from flask import render_template, make_response, jsonify, request
+from flask import render_template, make_response, jsonify, request, Response
 from sqlalchemy import desc, asc, func, extract, and_, case, text
 from sqlalchemy.exc import SQLAlchemyError
 from functools import wraps
@@ -8,6 +8,8 @@ from app.logger_setup import logger
 import json
 import datetime
 import humanize
+import csv
+import io
 
 
 def get_date_diff_expression(start_date, end_date):
@@ -284,6 +286,7 @@ def active_users():
 
 
 @app.route('/products')
+@cache.cached(timeout=120, key_prefix='products')  # Cache for 120 seconds
 @handle_errors
 def products():
     all_products = db.session.query(Product.common_name, Product.license_out, Product.license_total, Server.name).filter(Product.server_id==Server.id).all()
@@ -416,6 +419,7 @@ def username(username):
 
 
 @app.route('/servers')
+@cache.cached(timeout=60, key_prefix='servers')  # Cache for 60 seconds
 @handle_errors
 def servers():
     query = db.session.query(
@@ -562,3 +566,253 @@ def delta_time(t):
             return '0'
     else:
         return None
+
+
+@app.route('/health')
+def health():
+    """Health check endpoint for monitoring and load balancers."""
+    try:
+        # Check database connection
+        db.session.execute(text('SELECT 1'))
+        db_healthy = True
+        db_error = None
+    except Exception as e:
+        db_healthy = False
+        db_error = str(e)
+        db.session.rollback()
+    
+    # Check cache
+    try:
+        cache.set('health_check', 'ok', timeout=10)
+        cache_healthy = cache.get('health_check') == 'ok'
+        cache_error = None
+    except Exception as e:
+        cache_healthy = False
+        cache_error = str(e)
+    
+    # Overall health status
+    healthy = db_healthy and cache_healthy
+    
+    status_code = 200 if healthy else 503
+    
+    response = {
+        'status': 'healthy' if healthy else 'unhealthy',
+        'timestamp': datetime.datetime.utcnow().isoformat(),
+        'checks': {
+            'database': {
+                'status': 'healthy' if db_healthy else 'unhealthy',
+                'error': db_error
+            },
+            'cache': {
+                'status': 'healthy' if cache_healthy else 'unhealthy',
+                'error': cache_error
+            }
+        }
+    }
+    
+    return jsonify(response), status_code
+
+
+def generate_csv(data, headers, filename):
+    """Generate CSV file from data."""
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(headers)
+    writer.writerows(data)
+    output.seek(0)
+    
+    response = Response(
+        output.getvalue(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename={filename}'}
+    )
+    return response
+
+
+def generate_excel(data, headers, filename, sheet_name='Data'):
+    """Generate Excel file from data using openpyxl."""
+    try:
+        from openpyxl import Workbook
+        from openpyxl.writer.excel import save_virtual_workbook
+        
+        wb = Workbook()
+        ws = wb.active
+        ws.title = sheet_name
+        
+        # Write headers
+        ws.append(headers)
+        
+        # Write data
+        for row in data:
+            ws.append(row)
+        
+        # Save to BytesIO
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        response = Response(
+            output.getvalue(),
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            headers={'Content-Disposition': f'attachment; filename={filename}'}
+        )
+        return response
+    except ImportError:
+        # Fallback to CSV if openpyxl is not available
+        logger.warning('openpyxl not available, falling back to CSV')
+        return generate_csv(data, headers, filename.replace('.xlsx', '.csv'))
+
+
+@app.route('/export/users')
+@handle_errors
+def export_users():
+    """Export users data to CSV or Excel."""
+    format_type = request.args.get('format', 'csv').lower()
+    
+    # Use database-agnostic date calculation
+    time_in_expr = get_coalesce_expression(History.time_in, datetime.datetime.now())
+    time_diff = get_date_diff_expression(History.time_out, time_in_expr)
+    
+    users_data = db.session.query(
+        User.name,
+        History.time_in,
+        func.sum(time_diff).label('time_sum')
+    ).filter(
+        User.id == History.user_id
+    ).filter(
+        History.product_id == Product.id
+    ).filter(
+        Product.type == 'core'
+    ).group_by(User.name).all()
+    
+    headers = ['Username', 'Last Active', 'Total Usage (days)']
+    data = []
+    for user in users_data:
+        last_active = user.time_in.strftime('%Y-%m-%d %H:%M:%S') if user.time_in else 'Active'
+        data.append([
+            user.name,
+            last_active,
+            round(user.time_sum, 2) if user.time_sum else 0
+        ])
+    
+    filename = f'users_export_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
+    
+    if format_type == 'excel' or format_type == 'xlsx':
+        filename += '.xlsx'
+        return generate_excel(data, headers, filename, 'Users')
+    else:
+        filename += '.csv'
+        return generate_csv(data, headers, filename)
+
+
+@app.route('/export/products')
+@handle_errors
+def export_products():
+    """Export products data to CSV or Excel."""
+    format_type = request.args.get('format', 'csv').lower()
+    
+    products_data = db.session.query(
+        Product.common_name,
+        Product.license_out,
+        Product.license_total,
+        Server.name.label('server_name')
+    ).filter(
+        Product.server_id == Server.id
+    ).all()
+    
+    headers = ['Product Name', 'Licenses Out', 'Total Licenses', 'Server']
+    data = []
+    for product in products_data:
+        data.append([
+            product.common_name,
+            product.license_out,
+            product.license_total,
+            product.server_name
+        ])
+    
+    filename = f'products_export_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
+    
+    if format_type == 'excel' or format_type == 'xlsx':
+        filename += '.xlsx'
+        return generate_excel(data, headers, filename, 'Products')
+    else:
+        filename += '.csv'
+        return generate_csv(data, headers, filename)
+
+
+@app.route('/export/workstations')
+@handle_errors
+def export_workstations():
+    """Export workstations data to CSV or Excel."""
+    format_type = request.args.get('format', 'csv').lower()
+    
+    # Use database-agnostic date calculation
+    time_in_expr = get_coalesce_expression(History.time_in, datetime.datetime.now())
+    time_diff = get_date_diff_expression(History.time_out, time_in_expr)
+    
+    workstations_data = db.session.query(
+        Workstation.name,
+        History.time_in,
+        func.sum(time_diff).label('time_sum')
+    ).filter(
+        Workstation.id == History.workstation_id
+    ).filter(
+        History.product_id == Product.id
+    ).filter(
+        Product.type == 'core'
+    ).group_by(Workstation.name).all()
+    
+    headers = ['Workstation Name', 'Last Active', 'Total Usage (days)']
+    data = []
+    for ws in workstations_data:
+        last_active = ws.time_in.strftime('%Y-%m-%d %H:%M:%S') if ws.time_in else 'Active'
+        data.append([
+            ws.name,
+            last_active,
+            round(ws.time_sum, 2) if ws.time_sum else 0
+        ])
+    
+    filename = f'workstations_export_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
+    
+    if format_type == 'excel' or format_type == 'xlsx':
+        filename += '.xlsx'
+        return generate_excel(data, headers, filename, 'Workstations')
+    else:
+        filename += '.csv'
+        return generate_csv(data, headers, filename)
+
+
+@app.route('/export/servers')
+@handle_errors
+def export_servers():
+    """Export servers data to CSV or Excel."""
+    format_type = request.args.get('format', 'csv').lower()
+    
+    servers_data = db.session.query(
+        Server.name.label("name"),
+        Updates.info.label("info"),
+        Updates.status.label("status"),
+        func.max(Updates.time_complete).label('last_update')
+    ).filter(
+        Server.id == Updates.server_id
+    ).group_by(Server.name).all()
+    
+    headers = ['Server Name', 'Status', 'Last Update', 'Info']
+    data = []
+    for server in servers_data:
+        last_update = server.last_update.strftime('%Y-%m-%d %H:%M:%S') if server.last_update else 'Never'
+        data.append([
+            server.name,
+            server.status or 'Unknown',
+            last_update,
+            server.info or ''
+        ])
+    
+    filename = f'servers_export_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
+    
+    if format_type == 'excel' or format_type == 'xlsx':
+        filename += '.xlsx'
+        return generate_excel(data, headers, filename, 'Servers')
+    else:
+        filename += '.csv'
+        return generate_csv(data, headers, filename)

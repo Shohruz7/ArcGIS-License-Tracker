@@ -177,10 +177,12 @@ def read(license_file=None):
                                                                        updates['status'],
                                                                        info))
             Updates.end(update_id, updates['status'], info)
-            # Clear dashboard cache when license data is updated
+            # Clear caches when license data is updated
             try:
                 from app import cache
                 cache.delete('dashboard')
-                logger.info('Dashboard cache cleared after license update')
+                cache.delete('products')
+                cache.delete('servers')
+                logger.info('Caches cleared after license update (dashboard, products, servers)')
             except Exception as e:
                 logger.warning(f'Failed to clear cache: {str(e)}')
