@@ -28,21 +28,5 @@ migrate = Migrate(app, db)
 from flask_caching import Cache
 cache = Cache(app)
 
-# Setup APScheduler for background tasks
-from apscheduler.schedulers.background import BackgroundScheduler
-import atexit
-
-scheduler = BackgroundScheduler(timezone=app.config.get('SCHEDULER_TIMEZONE', 'US/Eastern'))
-# Don't start scheduler here - let it be started explicitly via commands or when server runs
-# scheduler.start()
-
-# Register shutdown handler to stop scheduler on app exit
-def shutdown_scheduler():
-    """Shutdown scheduler when application exits."""
-    if scheduler.running:
-        scheduler.shutdown(wait=False)
-
-atexit.register(shutdown_scheduler)
-
 # Import the views
 from app.views import main, error

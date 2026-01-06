@@ -103,7 +103,7 @@ There is also a sample web.config for reference included in this repo. A summary
 Tests can be ran using `python manage.py test`
 
 ## Further Thoughts
- - It would be good to have this running with a library like [ApScheduler](https://github.com/agronholm/apscheduler) to run the license reading process but I ran out of time trying to get it working w/IIS.  Windows Task Scheduler is an extra step but seems to work fine. 
+ - Windows Task Scheduler is used to run the license reading process periodically. Configure it to run `python manage.py read-once` every 1-5 minutes. 
  - The database design is as follows:
     
    ![Database Diagram](database.png)
